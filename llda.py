@@ -9,7 +9,7 @@ import gensim
 import sys
 import numpy as np
 import warnings
-from scipy.stats import boltzmann
+from scipy.stats import poisson
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.preprocessing import MultiLabelBinarizer
 
@@ -81,7 +81,7 @@ class LLDAClassifier(BaseEstimator, ClassifierMixin):
 
     def predict(self, X, sparsed=True):
         probability = self.predict_proba(X)
-        result = self._assignment(probability, probability.shape[1])
+        result = self._assignment(probability)
         if sparsed:
             result = self._transform_sparse_matrix(result)
         return result
@@ -106,15 +106,15 @@ class LLDAClassifier(BaseEstimator, ClassifierMixin):
         mbl = MultiLabelBinarizer(list(range(self.class_num)))
         return mbl.fit_transform(y)
 
-    def _assignment(self, y, N):
-        boltz_dist = [boltzmann.pmf(each, self.lambda_, N) for each in range(N)]
+    def _assignment(self, y):
+        poisson_dist = [poisson.pmf(each, self.lambda_) for each in range(len(y))]
         result = []
-        for i in y:
+        for value in y:
             a = []
-            sorted_i = sorted(i, reverse=True)
-            for j in range(len(i)):
-                if sorted_i[j] > boltz_dist[j]:
-                    a.append(np.where(i==sorted_i[j])[0][0])
+            sorted_value = sorted(value, reverse=True)
+            for j in range(len(value)):
+                if sorted_value[j] > poisson_dist[j]:
+                    a.append(np.where(value==sorted_value[j])[0][0])
             result.append(a)
         return result
 
