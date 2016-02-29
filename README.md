@@ -5,7 +5,7 @@ Original file:15.11.30 HIGASHI Koichi
 * [Labeled-LDA](https://github.com/khigashi1987/Labeled-LDA)
 * [OnlineLDA_ParticleFilter](https://github.com/khigashi1987/OnlineLDA_ParticleFilter)
 
-For Python implementation like Sciki-learn:16.02.19 SUZUKI Shinya
+For Python implementation like Scikit-learn:16.02.19 SUZUKI Shinya
 
 ## Usage
 
