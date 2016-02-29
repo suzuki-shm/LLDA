@@ -9,7 +9,6 @@ import gensim
 import sys
 import numpy as np
 import warnings
-from scipy.stats import poisson
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.preprocessing import MultiLabelBinarizer
 
@@ -22,7 +21,7 @@ class LLDAClassifier(BaseEstimator, ClassifierMixin):
                 n_particle=100,
                 ess=10,
                 rejuvenation=10,
-                lambda_=0.5,
+                threshold=0.1,
                 tmp="/tmp/labeled_lda"):
         if type(rejuvenation) is not int:
             raise ValueError("rejuvenation should be integer value.")
@@ -38,7 +37,7 @@ class LLDAClassifier(BaseEstimator, ClassifierMixin):
         self.n_particle=n_particle
         self.ess=ess
         self.rejuvenation=rejuvenation
-        self.lambda_ = lambda_
+        self.threshold = threshold
         self.tmp = tmp
         self.program_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -93,7 +92,7 @@ class LLDAClassifier(BaseEstimator, ClassifierMixin):
                 "n_particle":self.n_particle,
                 "ess":self.ess,
                 "rejuvenation":self.rejuvenation,
-                "lambda_":self.lambda_,
+                "threshold":self.threshold,
                 "tmp":self.tmp
                 }
 
@@ -107,16 +106,7 @@ class LLDAClassifier(BaseEstimator, ClassifierMixin):
         return mbl.fit_transform(y)
 
     def _assignment(self, y):
-        poisson_dist = [poisson.pmf(each, self.lambda_) for each in range(len(y))]
-        result = []
-        for value in y:
-            a = []
-            sorted_value = sorted(value, reverse=True)
-            for j in range(len(value)):
-                if sorted_value[j] > poisson_dist[j]:
-                    a.append(np.where(value==sorted_value[j])[0][0])
-            result.append(a)
-        return result
+        return (y>self.threshold).astype(np.int)
 
     def _convert_svmlight(self, X, porpose):
         np_X = np.array(X)
