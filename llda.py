@@ -10,7 +10,6 @@ import sys
 import numpy as np
 import warnings
 from sklearn.base import BaseEstimator, ClassifierMixin
-from sklearn.preprocessing import MultiLabelBinarizer
 
 class LLDAClassifier(BaseEstimator, ClassifierMixin):
 
@@ -75,15 +74,11 @@ class LLDAClassifier(BaseEstimator, ClassifierMixin):
                         os.path.join(self.tmp, "test_x.svmlight").encode("UTF-8"),
                         os.path.join(self.tmp, "fit").encode("UTF-8")
                        )
-        result = np.loadtxt(os.path.join(self.tmp, "test_x.svmlight.theta")) 
-        return result
+        return np.loadtxt(os.path.join(self.tmp, "test_x.svmlight.theta")) 
 
-    def predict(self, X, sparsed=True):
+    def predict(self, X):
         probability = self.predict_proba(X)
-        result = self._assignment(probability)
-        if sparsed:
-            result = self._transform_sparse_matrix(result)
-        return result
+        return self._assignment(probability)
 
     def get_params(self, deep=True):
         return {"maxiter":self.maxiter,
@@ -100,10 +95,6 @@ class LLDAClassifier(BaseEstimator, ClassifierMixin):
         for parameter, value in parameters.items():
             self.setattr(parameter, value)
         return self
-
-    def _transform_sparse_matrix(self, y):
-        mbl = MultiLabelBinarizer(list(range(self.class_num)))
-        return mbl.fit_transform(y)
 
     def _assignment(self, y):
         return (y>self.threshold).astype(np.int)
