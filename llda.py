@@ -10,6 +10,7 @@ import sys
 import numpy as np
 import warnings
 from sklearn.base import BaseEstimator, ClassifierMixin
+from sklearn.utils import check_array
 
 class LLDAClassifier(BaseEstimator, ClassifierMixin):
 
@@ -41,6 +42,7 @@ class LLDAClassifier(BaseEstimator, ClassifierMixin):
         self.program_dir = os.path.dirname(os.path.abspath(__file__))
 
     def fit(self, X, y):
+        y = self._validate_targets(y)
         self.class_num = y.shape[1]
 
         self._convert_svmlight(X, "train")
@@ -95,6 +97,12 @@ class LLDAClassifier(BaseEstimator, ClassifierMixin):
         for parameter, value in parameters.items():
             self.setattr(parameter, value)
         return self
+
+    def _validate_targets(self, y):
+        y = check_array(y)
+        if y.shape[0]==1 or y.dtype!=np.int:
+            raise ValueError("Label input must be sparse matrix.")
+        return y
 
     def _assignment(self, y):
         return (y>self.threshold).astype(np.int)
