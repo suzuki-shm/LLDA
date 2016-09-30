@@ -43,7 +43,7 @@ class LLDAClassifier(BaseEstimator, ClassifierMixin):
 
     def fit(self, X, y):
         y = self._validate_targets(y)
-        self.class_num = y.shape[1]
+        self.__class_num = y.shape[1]
 
         self._convert_svmlight(X, "train")
         self._convert_low(y, "train")
@@ -76,7 +76,10 @@ class LLDAClassifier(BaseEstimator, ClassifierMixin):
                         os.path.join(self.tmp, "test_x.svmlight").encode("UTF-8"),
                         os.path.join(self.tmp, "fit").encode("UTF-8")
                        )
-        return np.loadtxt(os.path.join(self.tmp, "test_x.svmlight.theta")) 
+        result = np.loadtxt(os.path.join(self.tmp, "test_x.svmlight.theta"))
+        while result.shape[1] < self.__class_num:
+            result = np.c_[result, np.zeros(result.shape[0])]
+        return result
 
     def predict(self, X):
         probability = self.predict_proba(X)
